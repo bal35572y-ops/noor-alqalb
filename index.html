@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>موعظة وتدبّر | نور القلب</title>
+    <meta name="description" content="تطبيق إسلامي شامل للمواعظ، تدبر القرآن، الأذكار، والأحاديث">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#166534">
+    
+    <!-- Fonts: Tajawal -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons: FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS (via CDN for standalone functionality) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        islamic: {
+                            green: '#166534',
+                            lightGreen: '#dcfce7',
+                            gold: '#ca8a04',
+                            dark: '#0f172a',
+                            surface: '#1e293b'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Tajawal', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Tajawal', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        /* إخفاء شريط التمرير مع الحفاظ على الوظيفة */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+        }
+        .dark .glass-panel {
+            background: rgba(30, 41, 59, 0.9);
+        }
+
+        /* زر التسبيح الدائري */
+        .tasbeeh-btn {
+            box-shadow: 0 10px 25px -5px rgba(22, 101, 52, 0.4);
+            transition: all 0.1s;
+        }
+        .tasbeeh-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 5px 15px -5px rgba(22, 101, 52, 0.4);
+        }
+        
+        /* حجم الخط الديناميكي */
+        .text-size-sm { font-size: 0.9rem; }
+        .text-size-md { font-size: 1.1rem; }
+        .text-size-lg { font-size: 1.3rem; }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-800 dark:bg-islamic-dark dark:text-gray-200 transition-colors duration-300 pb-20">
+
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 glass-panel shadow-sm z-50 px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-moon text-islamic-gold text-2xl"></i>
+            <h1 class="font-bold text-xl text-islamic-green dark:text-islamic-lightGreen">نور القلب</h1>
+        </div>
+        <div class="flex gap-4">
+            <button onclick="switchTab('search')" class="text-gray-500 dark:text-gray-300 hover:text-islamic-green"><i class="fa-solid fa-search text-xl"></i></button>
+            <button onclick="switchTab('settings')" class="text-gray-500 dark:text-gray-300 hover:text-islamic-green"><i class="fa-solid fa-cog text-xl"></i></button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main id="main-content" class="pt-20 px-4 max-w-2xl mx-auto h-full">
+        
+        <!-- Home Tab -->
+        <section id="home" class="tab-content active space-y-6">
+            <!-- Daily Verse -->
+            <div class="bg-white dark:bg-islamic-surface rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 relative overflow-hidden">
+                <div class="absolute -left-6 -top-6 text-islamic-lightGreen opacity-20 dark:opacity-5 text-6xl">
+                    <i class="fa-solid fa-book-quran"></i>
+                </div>
+                <div class="relative z-10">
+                    <div class="flex items-center gap-2 text-islamic-gold mb-3 text-sm font-bold">
+                        <i class="fa-solid fa-star"></i> آية اليوم
+                    </div>
+                    <p id="daily-verse-text" class="text-xl font-medium leading-loose text-center mb-4 text-size-dynamic font-quran">
+                        <!-- يُعبأ بـ JS -->
+                    </p>
+                    <p id="daily-verse-source" class="text-sm text-gray-500 text-center"></p>
+                    <button onclick="switchTab('quran')" class="mt-4 w-full bg-islamic-lightGreen text-islamic-green py-2 rounded-lg font-bold text-sm hover:bg-green-200 transition">تدبّر الآية الآن</button>
+                </div>
+            </div>
+
+            <!-- Grid Quick Actions -->
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="switchTab('dhikr')" class="bg-white dark:bg-islamic-surface p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col items-center gap-3">
+                    <div class="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-500 text-xl"><i class="fa-solid fa-hands-praying"></i></div>
+                    <span class="font-bold">الأذكار</span>
+                </button>
+                <button onclick="switchTab('sermons')" class="bg-white dark:bg-islamic-surface p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col items-center gap-3">
+                    <div class="w-12 h-12 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-500 text-xl"><i class="fa-solid fa-heart-pulse"></i></div>
+                    <span class="font-bold">المواعظ</span>
+                </button>
+                <button onclick="switchTab('hadith')" class="bg-white dark:bg-islamic-surface p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col items-center gap-3">
+                    <div class="w-12 h-12 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-500 text-xl"><i class="fa-solid fa-scroll"></i></div>
+                    <span class="font-bold">الأحاديث</span>
+                </button>
+                <button onclick="switchTab('accountability')" class="bg-white dark:bg-islamic-surface p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col items-center gap-3">
+                    <div class="w-12 h-12 rounded-full bg-teal-50 dark:bg-teal-900/30 flex items-center justify-center text-teal-500 text-xl"><i class="fa-solid fa-clipboard-check"></i></div>
+                    <span class="font-bold">محاسبة النفس</span>
+                </button>
+            </div>
+
+            <!-- Daily Hadith -->
+            <div class="bg-gradient-to-r from-islamic-green to-emerald-700 rounded-2xl p-5 shadow-lg text-white">
+                <h3 class="font-bold text-sm mb-3 opacity-90"><i class="fa-solid fa-quote-right me-2"></i>حديث اليوم</h3>
+                <p id="daily-hadith-text" class="text-lg leading-relaxed mb-3 text-size-dynamic"></p>
+                <p id="daily-hadith-source" class="text-xs opacity-75 text-left"></p>
+            </div>
+        </section>
+
+        <!-- Sermons Tab -->
+        <section id="sermons" class="tab-content">
+            <h2 class="text-2xl font-bold mb-4 text-islamic-green dark:text-islamic-lightGreen">مواعظ ورسائل</h2>
+            <div class="flex overflow-x-auto gap-2 pb-2 mb-4 no-scrollbar" id="sermon-categories">
+                <!-- يُعبأ بـ JS -->
+            </div>
+            <div id="sermons-list" class="space-y-4">
+                <!-- يُعبأ بـ JS -->
+            </div>
+        </section>
+
+        <!-- Quran Tab -->
+        <section id="quran" class="tab-content">
+            <h2 class="text-2xl font-bold mb-4 text-islamic-green dark:text-islamic-lightGreen">تدبّر القرآن</h2>
+            <div id="quran-list" class="space-y-6">
+                <!-- يُعبأ بـ JS -->
+            </div>
+        </section>
+
+        <!-- Dhikr Tab -->
+        <section id="dhikr" class="tab-content">
+            <h2 class="text-2xl font-bold mb-4 text-islamic-green dark:text-islamic-lightGreen">الأذكار والتسبيح</h2>
+            
+            <div id="dhikr-categories-view">
+                <div class="grid grid-cols-1 gap-3" id="dhikr-categories-list">
+                    <!-- يُعبأ بـ JS -->
+                </div>
+            </div>
+
+            <div id="dhikr-counter-view" class="hidden flex-col items-center justify-center mt-10">
+                <button onclick="closeDhikrCounter()" class="self-start text-gray-500 mb-6"><i class="fa-solid fa-arrow-right"></i> عودة</button>
+                <h3 id="current-dhikr-title" class="text-xl font-bold mb-2 text-center"></h3>
+                <p id="current-dhikr-text" class="text-center text-lg mb-8 leading-relaxed text-size-dynamic"></p>
+                
+                <div class="relative w-48 h-48 mb-8">
+                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="45" fill="transparent" stroke="currentColor" stroke-width="5" class="text-gray-200 dark:text-gray-700"></circle>
+                        <circle id="dhikr-progress-circle" cx="50" cy="50" r="45" fill="transparent" stroke="currentColor" stroke-width="5" stroke-dasharray="283" stroke-dashoffset="283" class="text-islamic-green transition-all duration-300"></circle>
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <span id="dhikr-count-display" class="text-4xl font-bold text-islamic-green dark:text-islamic-lightGreen">0</span>
+                        <span id="dhikr-target-display" class="text-sm text-gray-500">من 33</span>
+                    </div>
+                </div>
+
+                <div class="flex gap-4">
+                    <button onclick="resetDhikr()" class="w-14 h-14 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300"><i class="fa-solid fa-rotate-left"></i></button>
+                    <button id="main-tasbeeh-btn" class="tasbeeh-btn w-20 h-20 rounded-full bg-islamic-green text-white flex items-center justify-center text-3xl"><i class="fa-solid fa-hand-pointer"></i></button>
+                    <button onclick="nextDhikr()" class="w-14 h-14 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300"><i class="fa-solid fa-forward"></i></button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Hadith Tab -->
+        <section id="hadith" class="tab-content">
+            <h2 class="text-2xl font-bold mb-4 text-islamic-green dark:text-islamic-lightGreen">الأحاديث النبوية</h2>
+            <div class="bg-yellow-50 dark:bg-yellow-900/20 border-r-4 border-yellow-500 p-3 mb-4 rounded text-sm text-yellow-800 dark:text-yellow-200">
+                <i class="fa-solid fa-circle-info"></i> جميع الأحاديث المعروضة هنا صحيحة أو حسنة وموثقة بمصادرها.
+            </div>
+            <div id="hadith-list" class="space-y-4">
+                <!-- يُعبأ بـ JS -->
+            </div>
+        </section>
+
+        <!-- Accountability Tab -->
+        <section id="accountability" class="tab-content">
+            <h2 class="text-2xl font-bold mb-2 text-islamic-green dark:text-islamic-lightGreen">محاسبة النفس</h2>
+            <p class="text-sm text-gray-500 mb-6">"حاسبوا أنفسكم قبل أن تحاسبوا"</p>
+            
+            <div class="bg-white dark:bg-islamic-surface rounded-2xl p-5 shadow-sm mb-6 border border-gray-100 dark:border-gray-700">
+                <h3 class="font-bold mb-4 border-b pb-2 dark:border-gray-700">المهام اليومية (<span id="current-date-display"></span>)</h3>
+                <div id="daily-tasks-list" class="space-y-3">
+                    <!-- يُعبأ بـ JS -->
+                </div>
+            </div>
+            <div id="accountability-message" class="text-center p-4 rounded-lg bg-emerald-50 text-emerald-700 hidden">
+                <!-- رسائل تشجيعية -->
+            </div>
+        </section>
+
+        <!-- Settings Tab -->
+        <section id="settings" class="tab-content">
+            <h2 class="text-2xl font-bold mb-6 text-islamic-green dark:text-islamic-lightGreen">الإعدادات</h2>
+            
+            <div class="space-y-6">
+                <div class="bg-white dark:bg-islamic-surface rounded-xl p-4 shadow-sm">
+                    <h3 class="font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-palette text-islamic-gold"></i> المظهر</h3>
+                    <div class="flex justify-between items-center py-2 border-b dark:border-gray-700">
+                        <span>الوضع الليلي</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="theme-toggle" class="sr-only peer" onchange="toggleTheme()">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-islamic-green"></div>
+                        </label>
+                    </div>
+                    <div class="py-2 mt-2">
+                        <span class="block mb-2">حجم الخط</span>
+                        <div class="flex gap-2">
+                            <button onclick="setFontSize('sm')" class="flex-1 py-1 border rounded hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 text-sm">صغير</button>
+                            <button onclick="setFontSize('md')" class="flex-1 py-1 border rounded hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 font-medium">متوسط</button>
+                            <button onclick="setFontSize('lg')" class="flex-1 py-1 border rounded hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 text-lg">كبير</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-islamic-surface rounded-xl p-4 shadow-sm">
+                    <h3 class="font-bold mb-3 flex items-center gap-2 text-red-500"><i class="fa-solid fa-triangle-exclamation"></i> البيانات</h3>
+                    <button onclick="clearData()" class="w-full text-red-500 border border-red-500 rounded-lg py-2 hover:bg-red-50 dark:hover:bg-red-900/20 transition">مسح جميع البيانات المحفوظة</button>
+                    <p class="text-xs text-gray-500 mt-2 text-center">سيتم حذف المفضلة وسجل التقدم</p>
+                </div>
+
+                <div class="text-center mt-8 text-sm text-gray-500">
+                    <p>تطبيق موعظة وتدبّر | إصدار 1.0.0</p>
+                    <p class="mt-1">تم التطوير بناءً على مراجع إسلامية موثوقة.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Search & Favorites Tab -->
+        <section id="search" class="tab-content">
+            <h2 class="text-2xl font-bold mb-4 text-islamic-green dark:text-islamic-lightGreen">البحث والمفضلة</h2>
+            
+            <div class="mb-6">
+                <input type="text" id="search-input" onkeyup="performSearch()" placeholder="ابحث في القرآن، الأحاديث، والمواعظ..." class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-islamic-surface focus:outline-none focus:ring-2 focus:ring-islamic-green">
+            </div>
+
+            <div id="search-results" class="space-y-4 mb-8 hidden">
+                <h3 class="font-bold text-gray-500 border-b pb-2">نتائج البحث</h3>
+                <div id="search-results-list" class="space-y-3"></div>
+            </div>
+
+            <div id="favorites-section">
+                <h3 class="font-bold text-islamic-gold border-b pb-2 mb-4"><i class="fa-solid fa-heart"></i> المحفوظات المفضلة</h3>
+                <div id="favorites-list" class="space-y-4 text-center text-gray-500">
+                    لا توجد عناصر في المفضلة حالياً.
+                </div>
+            </div>
+        </section>
+        
+        <!-- مساحة إضافية للتمرير فوق شريط التنقل -->
+        <div class="h-10"></div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white dark:bg-islamic-dark border-t border-gray-200 dark:border-gray-800 pb-safe shadow-[0_-5px_10px_rgba(0,0,0,0.05)] z-50">
+        <div class="flex justify-around items-center h-16">
+            <button onclick="switchTab('home')" class="nav-btn active flex flex-col items-center w-1/4 text-gray-400 hover:text-islamic-green transition data-[active=true]:text-islamic-green">
+                <i class="fa-solid fa-house text-lg mb-1"></i>
+                <span class="text-[10px] font-bold">الرئيسية</span>
+            </button>
+            <button onclick="switchTab('quran')" class="nav-btn flex flex-col items-center w-1/4 text-gray-400 hover:text-islamic-green transition data-[active=true]:text-islamic-green">
+                <i class="fa-solid fa-book-open text-lg mb-1"></i>
+                <span class="text-[10px] font-bold">تدبّر</span>
+            </button>
+            <button onclick="switchTab('dhikr')" class="nav-btn flex flex-col items-center w-1/4 text-gray-400 hover:text-islamic-green transition data-[active=true]:text-islamic-green">
+                <i class="fa-solid fa-ring text-lg mb-1"></i>
+                <span class="text-[10px] font-bold">تسبيح</span>
+            </button>
+            <button onclick="switchTab('sermons')" class="nav-btn flex flex-col items-center w-1/4 text-gray-400 hover:text-islamic-green transition data-[active=true]:text-islamic-green">
+                <i class="fa-solid fa-leaf text-lg mb-1"></i>
+                <span class="text-[10px] font-bold">مواعظ</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-full text-sm opacity-0 pointer-events-none transition-opacity duration-300 z-50">
+        تم الإجراء بنجاح
+    </div>
+
+    <script>
+        // --- 1. Database (Mocked for comprehensive but accurate examples) ---
+        const db = {
+            quran: [
+                { id: 'q1', surah: 'الفاتحة', ayah: 1, text: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', tafsir: 'ابتدئ قراءتي مستعينا باسم الله، الموصوف بالرحمة الواسعة.', source: 'تفسير السعدي', lessons: ['البدء ببسم الله في كل الأعمال.', 'تذكر رحمة الله دائماً.'] },
+                { id: 'q2', surah: 'البقرة', ayah: 286, text: 'لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا ۚ لَهَا مَا كَسَبَتْ وَعَلَيْهَا مَا اكْتَسَبَتْ', tafsir: 'لا يكلف الله أحداً فوق طاقته، وهذا من عدله ورحمته.', source: 'تفسير ابن كثير', lessons: ['اليقين بأن ما تمر به من صعاب هو ضمن قدرتك على التحمل.', 'كل إنسان محاسب بعمله.'] },
+                { id: 'q3', surah: 'العصر', ayah: 1, text: 'وَالْعَصْرِ ۝ إِنَّ الْإِنْسَانَ لَفِي خُسْرٍ', tafsir: 'يقسم الله بالزمن أن كل إنسان في هلاك وخسران إلا من اتصف بصفات الإيمان والعمل الصالح.', source: 'تفسير السعدي', lessons: ['أهمية الوقت في حياة المسلم.', 'النجاة مرتبطة بالإيمان والعمل.'] }
+            ],
+            hadith: [
+                { id: 'h1', text: 'إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ، وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى.', source: 'صحيح البخاري (1)', subject: 'الإخلاص', explanation: 'مدار قبول الأعمال على النية الخالصة لله.' },
+                { id: 'h2', text: 'مَنْ سَلَكَ طَرِيقًا يَلْتَمِسُ فِيهِ عِلْمًا سَهَّلَ اللَّهُ لَهُ بِهِ طَرِيقًا إِلَى الْجَنَّةِ.', source: 'صحيح مسلم (2699)', subject: 'العلم', explanation: 'فضل طلب العلم الشرعي وأنه طريق للجنة.' },
+                { id: 'h3', text: 'كَلِمَتَانِ خَفِيفَتَانِ عَلَى اللِّسَانِ، ثَقِيلَتَانِ فِي الْمِيزَانِ، حَبِيبَتَانِ إِلَى الرَّحْمَنِ: سُبْحَانَ اللَّهِ وَبِحَمْدِهِ، سُبْحَانَ اللَّهِ الْعَظِيمِ.', source: 'صحيح البخاري (6406)', subject: 'الذكر', explanation: 'عظم ثواب هذا الذكر رغم سهولته.' }
+            ],
+            sermons: [
+                { id: 's1', category: 'التوبة', title: 'باب لا يُغلق', text: 'يا من أسرفت على نفسك، إن باب التوبة مفتوح لا يُغلق حتى تطلع الشمس من مغربها. عُد إلى ربك، فهو القائل: "قُلْ يَا عِبَادِيَ الَّذِينَ أَسْرَفُوا عَلَى أَنفُسِهِمْ لَا تَقْنَطُوا مِن رَّحْمَةِ اللَّهِ".' },
+                { id: 's2', category: 'الصلاة', title: 'نور في الدنيا والآخرة', text: 'الصلاة هي صلتك بربك، وهي أول ما تُسأل عنه يوم القيامة. فمن حافظ عليها كانت له نوراً وبرهاناً ونجاة يوم القيامة.' },
+                { id: 's3', category: 'الصبر', title: 'عاقبة الصبر', text: 'الابتلاء سنة ماضية، والصابرون يوفون أجورهم بغير حساب. تذكر أن مع العسر يسراً، وأن الله مع الصابرين.' }
+            ],
+            dhikr: [
+                { id: 'd1', category: 'أذكار الصباح والمساء', items: [
+                    { text: 'سُبْحَانَ اللهِ وَبِحَمْدِهِ', target: 100, source: 'صحيح مسلم' },
+                    { text: 'أَسْتَغْفِرُ اللَّهَ وَأَتُوبُ إِلَيْهِ', target: 100, source: 'صحيح البخاري' }
+                ]},
+                { id: 'd2', category: 'أذكار بعد الصلاة', items: [
+                    { text: 'سُبْحَانَ اللهِ', target: 33, source: 'صحيح مسلم' },
+                    { text: 'الْحَمْدُ للهِ', target: 33, source: 'صحيح مسلم' },
+                    { text: 'اللهُ أَكْبَرُ', target: 34, source: 'صحيح مسلم' }
+                ]}
+            ],
+            tasks: [
+                { id: 't1', title: 'أداء الصلوات الخمس في وقتها' },
+                { id: 't2', title: 'قراءة ورد من القرآن' },
+                { id: 't3', title: 'أذكار الصباح والمساء' },
+                { id: 't4', title: 'بر الوالدين أو الدعاء لهما' },
+                { id: 't5', title: 'الاستغفار 100 مرة' }
+            ]
+        };
+
+        // --- 2. State Management ---
+        let userState = {
+            favorites: [], // { type, id }
+            settings: { theme: 'light', fontSize: 'md' },
+            tasksDate: new Date().toLocaleDateString('en-CA'), // YYYY-MM-DD format
+            tasksCompleted: []
+        };
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem('noorAlQalbState');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    userState = { ...userState, ...parsed };
+                    
+                    // Reset tasks if it's a new day
+                    const today = new Date().toLocaleDateString('en-CA');
+                    if (userState.tasksDate !== today) {
+                        userState.tasksDate = today;
+                        userState.tasksCompleted = [];
+                        saveState();
+                    }
+                }
+            } catch (e) { console.error("Error loading state", e); }
+        }
+
+        function saveState() {
+            localStorage.setItem('noorAlQalbState', JSON.stringify(userState));
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.opacity = '1';
+            setTimeout(() => toast.style.opacity = '0', 2000);
+        }
+
+        // --- 3. UI Navigation & Helpers ---
+        function switchTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            // Show selected
+            document.getElementById(tabId).classList.add('active');
+            
+            // Update Nav styling
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.setAttribute('data-active', 'false'));
+            const activeBtn = document.querySelector(`.nav-btn[onclick="switchTab('${tabId}')"]`);
+            if(activeBtn) activeBtn.setAttribute('data-active', 'true');
+
+            // Scroll to top
+            window.scrollTo(0,0);
+
+            // Tab specific logic
+            if (tabId === 'search') renderFavorites();
+            if (tabId === 'accountability') checkAccountabilityProgress();
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                userState.settings.theme = 'light';
+            } else {
+                html.classList.add('dark');
+                userState.settings.theme = 'dark';
+            }
+            document.getElementById('theme-toggle').checked = userState.settings.theme === 'dark';
+            saveState();
+        }
+
+        function setFontSize(size) {
+            userState.settings.fontSize = size;
+            const body = document.body;
+            body.classList.remove('text-size-sm', 'text-size-md', 'text-size-lg');
+            body.classList.add(`text-size-${size}`);
+            // Apply to specific dynamic text elements
+            document.querySelectorAll('.text-size-dynamic').forEach(el => {
+                el.className = el.className.replace(/text-(sm|base|lg|xl|2xl)/, '');
+                if(size === 'sm') el.classList.add('text-base');
+                if(size === 'md') el.classList.add('text-lg');
+                if(size === 'lg') el.classList.add('text-xl');
+            });
+            saveState();
+        }
+
+        function applySettings() {
+            if (userState.settings.theme === 'dark') {
+                document.documentElement.classList.add('dark');
+                document.getElementById('theme-toggle').checked = true;
+            }
+            setFontSize(userState.settings.fontSize);
+        }
+
+        function toggleFavorite(type, id) {
+            const index = userState.favorites.findIndex(f => f.type === type && f.id === id);
+            if (index > -1) {
+                userState.favorites.splice(index, 1);
+                showToast('تمت الإزالة من المفضلة');
+            } else {
+                userState.favorites.push({ type, id });
+                showToast('تم الحفظ في المفضلة');
+            }
+            saveState();
+            
+            // Update UI if on search/fav tab
+            if (document.getElementById('search').classList.contains('active')) {
+                renderFavorites();
+            }
+            
+            // Toggle icon color
+            const btns = document.querySelectorAll(`.fav-btn-${type}-${id}`);
+            btns.forEach(btn => {
+                if(index > -1) {
+                    btn.classList.remove('text-red-500');
+                    btn.classList.add('text-gray-400');
+                } else {
+                    btn.classList.remove('text-gray-400');
+                    btn.classList.add('text-red-500');
+                }
+            });
+        }
+
+        function isFavorite(type, id) {
+            return userState.favorites.some(f => f.type === type && f.id === id);
+        }
+
+        function shareText(text, source) {
+            const shareData = {
+                title: 'نور القلب',
+                text: `${text}\n\n[المصدر: ${source}]\nتمت المشاركة من تطبيق نور القلب`
+            };
+            if (navigator.share) {
+                navigator.share(shareData).catch(err => console.log('Error sharing', err));
+            } else {
+                navigator.clipboard.writeText(shareData.text);
+                showToast('تم نسخ النص');
+            }
+        }
+
+        // --- 4. Render Logic ---
+        function renderHome() {
+            // Random Ayah
+            const dailyAyah = db.quran[new Date().getDate() % db.quran.length];
+            document.getElementById('daily-verse-text').innerText = dailyAyah.text;
+            document.getElementById('daily-verse-source').innerText = `سورة ${dailyAyah.surah} - آية ${dailyAyah.ayah}`;
+
+            // Random Hadith
+            const dailyHadith = db.hadith[(new Date().getDate() + 1) % db.hadith.length];
+            document.getElementById('daily-hadith-text').innerText = dailyHadith.text;
+            document.getElementById('daily-hadith-source').innerText = `المصدر: ${dailyHadith.source}`;
+        }
+
+        function createCard(item, type) {
+            const favIconColor = isFavorite(type, item.id) ? 'text-red-500' : 'text-gray-400';
+            let content = '';
+            
+            if (type === 'quran') {
+                content = `
+                    <div class="mb-3 border-b dark:border-gray-700 pb-3">
+                        <span class="text-xs bg-islamic-lightGreen text-islamic-green px-2 py-1 rounded-full">سورة ${item.surah} - الآية ${item.ayah}</span>
+                    </div>
+                    <p class="text-xl font-medium leading-loose text-center mb-4 text-size-dynamic font-quran">${item.text}</p>
+                    <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg text-sm mb-3">
+                        <span class="font-bold text-islamic-gold">التفسير (${item.source}):</span> ${item.tafsir}
+                    </div>
+                    <ul class="text-sm list-disc list-inside text-gray-600 dark:text-gray-400">
+                        ${item.lessons.map(l => `<li>${l}</li>`).join('')}
+                    </ul>`;
+            } else if (type === 'hadith') {
+                content = `
+                    <div class="mb-3 border-b dark:border-gray-700 pb-2 flex justify-between">
+                        <span class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">${item.subject}</span>
+                        <span class="text-xs text-gray-500">${item.source}</span>
+                    </div>
+                    <p class="text-lg leading-relaxed mb-3 text-size-dynamic font-medium">${item.text}</p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-2 rounded"><span class="font-bold">الشرح:</span> ${item.explanation}</p>`;
+            } else if (type === 'sermons') {
+                content = `
+                    <h3 class="font-bold text-lg mb-2">${item.title}</h3>
+                    <p class="text-md leading-relaxed text-gray-700 dark:text-gray-300 text-size-dynamic">${item.text}</p>
+                    <div class="mt-3 text-xs text-islamic-gold">${item.category}</div>`;
+            }
+
+            const plainTextForShare = type === 'quran' ? item.text : type === 'hadith' ? item.text : item.text;
+            const sourceForShare = type === 'quran' ? `سورة ${item.surah}` : type === 'hadith' ? item.source : 'موعظة';
+
+            return `
+                <div class="bg-white dark:bg-islamic-surface rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 mb-4">
+                    ${content}
+                    <div class="flex justify-end gap-4 mt-4 pt-3 border-t dark:border-gray-700">
+                        <button onclick="shareText('${plainTextForShare.replace(/'/g, "\\'")}', '${sourceForShare}')" class="text-gray-400 hover:text-blue-500"><i class="fa-solid fa-share-nodes"></i></button>
+                        <button onclick="toggleFavorite('${type}', '${item.id}')" class="fav-btn-${type}-${item.id} ${favIconColor} hover:text-red-500 transition"><i class="fa-solid fa-heart"></i></button>
+                    </div>
+                </div>`;
+        }
+
+        function renderLists() {
+            // Render Quran
+            document.getElementById('quran-list').innerHTML = db.quran.map(item => createCard(item, 'quran')).join('');
+            
+            // Render Hadith
+            document.getElementById('hadith-list').innerHTML = db.hadith.map(item => createCard(item, 'hadith')).join('');
+            
+            // Render Sermons
+            const sermonCats = [...new Set(db.sermons.map(s => s.category))];
+            document.getElementById('sermon-categories').innerHTML = sermonCats.map((c, i) => 
+                `<button class="px-4 py-1 rounded-full text-sm whitespace-nowrap ${i===0 ? 'bg-islamic-green text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}">${c}</button>`
+            ).join('');
+            document.getElementById('sermons-list').innerHTML = db.sermons.map(item => createCard(item, 'sermons')).join('');
+        }
+
+        // --- 5. Dhikr Logic ---
+        let currentDhikrSession = { items: [], currentIndex: 0, count: 0 };
+
+        function renderDhikrCategories() {
+            const list = document.getElementById('dhikr-categories-list');
+            list.innerHTML = db.dhikr.map(cat => `
+                <button onclick="openDhikrCategory('${cat.id}')" class="bg-white dark:bg-islamic-surface p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex justify-between items-center text-right hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                    <span class="font-bold text-lg">${cat.category}</span>
+                    <span class="text-islamic-green bg-islamic-lightGreen px-3 py-1 rounded-full text-xs">${cat.items.length} أذكار</span>
+                </button>
+            `).join('');
+        }
+
+        function openDhikrCategory(catId) {
+            const category = db.dhikr.find(c => c.id === catId);
+            if (!category) return;
+            
+            currentDhikrSession.items = category.items;
+            currentDhikrSession.currentIndex = 0;
+            currentDhikrSession.count = 0;
+            
+            document.getElementById('dhikr-categories-view').classList.add('hidden');
+            document.getElementById('dhikr-counter-view').classList.remove('hidden');
+            document.getElementById('dhikr-counter-view').classList.add('flex');
+            
+            updateDhikrUI();
+        }
+
+        function closeDhikrCounter() {
+            document.getElementById('dhikr-categories-view').classList.remove('hidden');
+            document.getElementById('dhikr-counter-view').classList.add('hidden');
+            document.getElementById('dhikr-counter-view').classList.remove('flex');
+        }
+
+        function updateDhikrUI() {
+            const item = currentDhikrSession.items[currentDhikrSession.currentIndex];
+            document.getElementById('current-dhikr-title').innerText = `الذكر (${currentDhikrSession.currentIndex + 1} من ${currentDhikrSession.items.length})`;
+            document.getElementById('current-dhikr-text').innerText = item.text;
+            document.getElementById('dhikr-count-display').innerText = currentDhikrSession.count;
+            document.getElementById('dhikr-target-display').innerText = `من ${item.target}`;
+            
+            // Update Circle progress
+            const circle = document.getElementById('dhikr-progress-circle');
+            const radius = circle.r.baseVal.value;
+            const circumference = radius * 2 * Math.PI;
+            const percent = currentDhikrSession.count / item.target;
+            const offset = circumference - (percent * circumference);
+            circle.style.strokeDashoffset = offset;
+
+            // Optional: Vibrate on complete
+            if(currentDhikrSession.count === item.target && navigator.vibrate) {
+                navigator.vibrate(200);
+            }
+        }
+
+        document.getElementById('main-tasbeeh-btn').addEventListener('click', () => {
+            const item = currentDhikrSession.items[currentDhikrSession.currentIndex];
+            if (currentDhikrSession.count < item.target) {
+                currentDhikrSession.count++;
+                updateDhikrUI();
+                
+                // Auto next if finished and not last
+                if (currentDhikrSession.count === item.target) {
+                    setTimeout(() => {
+                        if(currentDhikrSession.currentIndex < currentDhikrSession.items.length - 1) {
+                            nextDhikr();
+                        } else {
+                            showToast('تم الانتهاء من الورد، تقبل الله!');
+                        }
+                    }, 500);
+                }
+            }
+        });
+
+        function resetDhikr() {
+            currentDhikrSession.count = 0;
+            updateDhikrUI();
+        }
+
+        function nextDhikr() {
+            if (currentDhikrSession.currentIndex < currentDhikrSession.items.length - 1) {
+                currentDhikrSession.currentIndex++;
+                currentDhikrSession.count = 0;
+                updateDhikrUI();
+            }
+        }
+
+        // --- 6. Accountability ---
+        function renderTasks() {
+            const dateStr = new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('current-date-display').innerText = dateStr;
+            
+            const list = document.getElementById('daily-tasks-list');
+            list.innerHTML = db.tasks.map(task => {
+                const isChecked = userState.tasksCompleted.includes(task.id);
+                return `
+                <label class="flex items-center gap-3 p-3 rounded-lg border ${isChecked ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800' : 'bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700'} cursor-pointer transition">
+                    <input type="checkbox" onchange="toggleTask('${task.id}')" ${isChecked ? 'checked' : ''} class="w-5 h-5 text-islamic-green rounded focus:ring-islamic-green">
+                    <span class="${isChecked ? 'line-through text-gray-400' : 'text-gray-700 dark:text-gray-200'}">${task.title}</span>
+                </label>
+            `}).join('');
+            checkAccountabilityProgress();
+        }
+
+        function toggleTask(taskId) {
+            const idx = userState.tasksCompleted.indexOf(taskId);
+            if (idx > -1) {
+                userState.tasksCompleted.splice(idx, 1);
+            } else {
+                userState.tasksCompleted.push(taskId);
+            }
+            saveState();
+            renderTasks();
+        }
+
+        function checkAccountabilityProgress() {
+            const msgEl = document.getElementById('accountability-message');
+            const total = db.tasks.length;
+            const done = userState.tasksCompleted.length;
+            
+            if (done === 0) {
+                msgEl.classList.add('hidden');
+            } else {
+                msgEl.classList.remove('hidden');
+                if (done === total) {
+                    msgEl.innerHTML = '<i class="fa-solid fa-star text-yellow-500 text-xl mb-2"></i><br>ما شاء الله! أتممت جميع أورادك اليوم. تقبل الله طاعتك.';
+                    msgEl.className = "text-center p-4 rounded-lg bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200 font-bold";
+                } else if (done > total / 2) {
+                    msgEl.innerHTML = 'أحسنت! قطعت شوطاً كبيراً، استمر بارك الله فيك.';
+                    msgEl.className = "text-center p-4 rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-900/40 dark:text-blue-200";
+                } else {
+                    msgEl.innerHTML = 'بداية موفقة، الله يعينك على إتمام الباقي.';
+                    msgEl.className = "text-center p-4 rounded-lg bg-gray-50 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
+                }
+            }
+        }
+
+        // --- 7. Search & Favorites ---
+        function performSearch() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const resultsContainer = document.getElementById('search-results');
+            const resultsList = document.getElementById('search-results-list');
+            
+            if (query.length < 2) {
+                resultsContainer.classList.add('hidden');
+                return;
+            }
+
+            let results = [];
+            // Search in Quran
+            db.quran.forEach(q => {
+                if(q.text.includes(query) || q.surah.includes(query)) {
+                    results.push({ type: 'quran', title: `سورة ${q.surah}`, snippet: q.text.substring(0, 50) + '...' });
+                }
+            });
+            // Search in Hadith
+            db.hadith.forEach(h => {
+                if(h.text.includes(query) || h.subject.includes(query)) {
+                    results.push({ type: 'hadith', title: `حديث: ${h.subject}`, snippet: h.text.substring(0, 50) + '...' });
+                }
+            });
+
+            if (results.length > 0) {
+                resultsList.innerHTML = results.map(r => `
+                    <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <span class="text-xs bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded mb-2 inline-block">${r.type === 'quran' ? 'قرآن' : 'حديث'}</span>
+                        <h4 class="font-bold text-sm">${r.title}</h4>
+                        <p class="text-sm text-gray-500 mt-1">${r.snippet}</p>
+                    </div>
+                `).join('');
+                resultsContainer.classList.remove('hidden');
+            } else {
+                resultsList.innerHTML = '<p class="text-center text-gray-500">لا توجد نتائج مطابقة.</p>';
+                resultsContainer.classList.remove('hidden');
+            }
+        }
+
+        function renderFavorites() {
+            const list = document.getElementById('favorites-list');
+            if (userState.favorites.length === 0) {
+                list.innerHTML = '<p class="py-10"><i class="fa-regular fa-folder-open text-4xl mb-3 text-gray-300"></i><br>لا توجد عناصر في المفضلة</p>';
+                return;
+            }
+
+            let html = '';
+            userState.favorites.forEach(fav => {
+                let item;
+                if(fav.type === 'quran') item = db.quran.find(q => q.id === fav.id);
+                if(fav.type === 'hadith') item = db.hadith.find(h => h.id === fav.id);
+                if(fav.type === 'sermons') item = db.sermons.find(s => s.id === fav.id);
+                
+                if(item) {
+                    html += createCard(item, fav.type);
+                }
+            });
+            list.innerHTML = html;
+        }
+
+        function clearData() {
+            if(confirm('هل أنت متأكد من مسح جميع بيانات التطبيق من هذا الجهاز؟ (هذا الإجراء لا يمكن التراجع عنه)')) {
+                localStorage.removeItem('noorAlQalbState');
+                location.reload();
+            }
+        }
+
+        // --- 8. Initialization ---
+        window.onload = function() {
+            loadState();
+            applySettings();
+            renderHome();
+            renderLists();
+            renderDhikrCategories();
+            renderTasks();
+            
+            // Initial Active Tab
+            document.querySelector('.nav-btn').setAttribute('data-active', 'true');
+
+            // Register Service Worker for PWA
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('sw.js').then(registration => {
+                        console.log('SW registered: ', registration);
+                    }).catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+                });
+            }
+        };
+    </script>
+</body>
+</html>
+    
